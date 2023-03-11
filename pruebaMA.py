@@ -1,8 +1,8 @@
 import MetaTrader5 as mt5
 import pandas as pd
 import matplotlib.pyplot as plt
-import mpl_finance
-import matplotlib.dates as mdates
+from mpl_finance import candlestick_ohlc
+import talib
 
 # inicializar conexión con MetaTrader 5
 mt5.initialize()
@@ -24,19 +24,19 @@ df.set_index('time', inplace=True)
 # cerrar conexión con MetaTrader 5
 mt5.shutdown()
 
-# imprimir el DataFrame
-print(df.head())
-
 # convertir el DataFrame en una lista de tuplas OHLC
-ohlc = df[['open', 'high', 'low', 'close']].reset_index().values.tolist()
-ohlc = [(mdates.date2num(date), open, high, low, close) for date, open, high, low, close in ohlc]
+ohlc = df[['time', 'open', 'high', 'low', 'close']].reset_index().values.tolist()
 
-# trazar el gráfico de velas japonesas
+# calcular la media móvil
+ma = calculate_ma(symbol, timeframe, count, talib.MA_Type.SMA)
+
+# trazar el gráfico de velas japonesas con la media móvil
 fig, ax = plt.subplots()
-mpl_finance.candlestick_ohlc(ax, ohlc, width=0.6, colorup='green', colordown='red')
-ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+candlestick_ohlc(ax, ohlc, width=0.6, colorup='green', colordown='red')
 ax.set_title('Gráfico de velas japonesas para EURUSD')
 ax.set_xlabel('Fecha')
 ax.set_ylabel('Precio')
 plt.xticks(rotation=30)
+plt.plot(df.index, ma, label='Media móvil (14)')
+plt.legend()
 plt.show()
